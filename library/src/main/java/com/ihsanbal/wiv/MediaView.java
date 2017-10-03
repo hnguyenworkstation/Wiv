@@ -153,6 +153,11 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
         final int height = MeasureSpec.getSize(heightMeasureSpec);
         final int halfWidth = (width - mediaDividerSize) / 2;
         final int halfHeight = (height - mediaDividerSize) / 2;
+
+        final int oneThirdWidth = (width - mediaDividerSize) / 3;
+        final int oneThirdHeight = (height - mediaDividerSize) / 3;
+        final int twoThirdHeight = height - oneThirdHeight;
+
         switch (imageCount) {
             case 1:
                 measureImageView(0, width, height);
@@ -172,6 +177,13 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
                 measureImageView(2, halfWidth, halfHeight);
                 measureImageView(3, halfWidth, halfHeight);
                 break;
+            case 5:
+                measureImageView(0, halfWidth, twoThirdHeight);
+                measureImageView(1, halfWidth, twoThirdHeight);
+                measureImageView(2, oneThirdWidth, oneThirdHeight);
+                measureImageView(3, oneThirdWidth, oneThirdHeight);
+                measureImageView(4, oneThirdWidth, oneThirdHeight);
+                break;
             default:
                 break;
         }
@@ -190,6 +202,14 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
         int halfWidth = (width - mediaDividerSize) / 2;
         int halfHeight = (height - mediaDividerSize) / 2;
         int middle = halfWidth + mediaDividerSize;
+
+        int oneThirdHeight = (height - mediaDividerSize) / 3;
+        int twoThirdHeight = height - oneThirdHeight;
+
+        int oneThirdWidth = (width - mediaDividerSize) / 3;
+        int oneThirdWidthWithSpace = oneThirdWidth + mediaDividerSize;
+        int twoThirdHeightWithSpace = twoThirdHeight + mediaDividerSize;
+
         switch (imageCount) {
             case 1:
                 layoutImage(0, 0, 0, width, height);
@@ -208,6 +228,13 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
                 layoutImage(2, 0, halfHeight + mediaDividerSize, halfWidth, height);
                 layoutImage(1, middle, 0, width, halfHeight);
                 layoutImage(3, middle, halfHeight + mediaDividerSize, width, height);
+                break;
+            case 5:
+                layoutImage(0, 0, 0, halfWidth, twoThirdHeight);
+                layoutImage(1, middle, 0, width, twoThirdHeight);
+                layoutImage(2, 0, twoThirdHeightWithSpace, oneThirdWidth, height);
+                layoutImage(3, oneThirdWidthWithSpace, twoThirdHeightWithSpace, oneThirdWidth * 2 + mediaDividerSize, height);
+                layoutImage(4, oneThirdWidthWithSpace * 2 - mediaDividerSize, twoThirdHeightWithSpace, width, height);
                 break;
             default:
                 break;
