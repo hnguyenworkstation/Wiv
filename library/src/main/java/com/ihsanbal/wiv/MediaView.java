@@ -7,14 +7,23 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -29,7 +38,7 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
     private static final int DEFAULT_CORNER_RADII = 5;
 
     private final OverlayImageView[] imageViews = new OverlayImageView[MAX_IMAGE_VIEW_COUNT];
-    private Picasso imageLoader;
+    private RequestManager imageLoader;
     private List<String> mediaEntities = Collections.emptyList();
     private final Path path = new Path();
     private final RectF rect = new RectF();
@@ -54,10 +63,10 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
     public MediaView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         if (!isInEditMode())
-            initAttributes(attrs, defStyle, Picasso.with(context));
+            initAttributes(attrs, defStyle, Glide.with(context));
     }
 
-    private void initAttributes(AttributeSet attrs, int defStyle, Picasso loader) {
+    private void initAttributes(AttributeSet attrs, int defStyle, RequestManager loader) {
         this.imageLoader = loader;
         final TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.MediaView, defStyle, 0);
         try {
@@ -310,30 +319,30 @@ public class MediaView extends ViewGroup implements View.OnClickListener {
 
     void setMediaImage(ImageView imageView, String imagePath) {
         if (imageLoader == null) return;
-        imageLoader.load(imagePath)
-                .fit()
-                .centerCrop()
-                .error(photoErrorResId)
-                .into(imageView, new PicassoCallback(imageView));
-    }
 
-    private static class PicassoCallback implements com.squareup.picasso.Callback {
         final WeakReference<ImageView> imageViewWeakReference;
+        imageViewWeakReference = new WeakReference<>(imageView);
 
-        PicassoCallback(ImageView imageView) {
-            imageViewWeakReference = new WeakReference<>(imageView);
-        }
+        imageLoader.load(imagePath)
+                .apply(RequestOptions.centerCropTransform())
+                .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.ALL))
+                .apply(RequestOptions.errorOf(photoErrorResId))
+                .listener(new RequestListener<Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        return false;
+                    }
 
-        @Override
-        public void onSuccess() {
-            final ImageView imageView = imageViewWeakReference.get();
-            if (imageView != null) {
-                imageView.setBackgroundResource(android.R.color.transparent);
-            }
-        }
-
-        @Override
-        public void onError() { /* intentionally blank */ }
+                    @Override
+                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                        final ImageView imageView = imageViewWeakReference.get();
+                        if (imageView != null) {
+                            imageView.setBackgroundResource(android.R.color.transparent);
+                        }
+                        return false;
+                    }
+                })
+                .into(imageView);
     }
 
     private static class Size {
